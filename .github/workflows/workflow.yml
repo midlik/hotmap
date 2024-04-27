@@ -2,9 +2,8 @@
 name: Deploy Jekyll with GitHub Pages dependencies preinstalled
 
 on:
-  # Runs on pushes targeting the default branch
+  # Runs on push to any branch and on pull request merge
   push:
-    # branches: ["main"]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -46,44 +45,45 @@ jobs:
           name: build
           path: build
 
-  # # Build pages job
-  # build-pages:
-  #   needs: build
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #     - name: Download build artifact
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: build
-  #         path: build
-  #     - name: Setup Pages
-  #       uses: actions/configure-pages@v5
-  #     - name: Build with Jekyll
-  #       uses: actions/jekyll-build-pages@v1
-  #       with:
-  #         source: ./
-  #         destination: ./_site
-  #     - name: Upload pages artifact
-  #       uses: actions/upload-pages-artifact@v3
+  # Build pages job
+  build-pages:
+    if: github.ref == 'refs/heads/alice' # Only run on alice branch
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: build
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v3
 
-  # # Deployment job
-  # deploy-pages:
-  #   needs: build-pages
-  #   runs-on: ubuntu-latest
-  #   environment:
-  #     name: github-pages
-  #     url: ${{ steps.deployment.outputs.page_url }}
-  #   steps:
-  #     - name: Deploy to GitHub Pages
-  #       id: deployment
-  #       uses: actions/deploy-pages@v4
+  # Deployment job
+  deploy-pages:
+    needs: build-pages
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 
-  # # Check tag validity before publishing
-  # valid-tag:
-  #   if: github.ref_type == 'tag'
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - name: Check that the tag follows semantic versioning with "v" prefix
-  #     run: echo ${{ github.ref_name }} | egrep '^v[0-9]+\.[0-9]+\.[0-9]+\S*$'
+  # Check tag validity before publishing
+  valid-tag:
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check that the tag follows semantic versioning with "v" prefix
+      run: echo ${{ github.ref_name }} | egrep '^v[0-9]+\.[0-9]+\.[0-9]+\S*$'
