@@ -53,6 +53,8 @@ jobs:
   # Check if this is 'main' branch
   main-branch:
     if: github.ref == 'refs/heads/main' # Only run on main branch
+    runs-on: ubuntu-latest
+    steps: []
 
   # Build pages
   build-pages:
