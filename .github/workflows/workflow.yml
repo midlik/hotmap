@@ -21,7 +21,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Build job
+  # Build
   build:
     runs-on: ubuntu-latest
     steps:
@@ -39,16 +39,24 @@ jobs:
         run: npm run test
       - name: Build
         run: npm run build
+      - name: Upload lib artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lib
+          path: lib
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: build
           path: build
 
-  # Build pages job
+  # Check if this is 'main' branch
+  main-branch:
+    if: github.ref == 'refs/heads/main' # Only run on main branch
+
+  # Build pages
   build-pages:
-    if: github.ref == 'refs/heads/alice' # Only run on alice branch
-    needs: build
+    needs: [build, main-branch]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -68,7 +76,7 @@ jobs:
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v3
 
-  # Deployment job
+  # Deploy pages
   deploy-pages:
     needs: build-pages
     runs-on: ubuntu-latest
@@ -87,3 +95,29 @@ jobs:
     steps:
     - name: Check that the tag follows semantic versioning with "v" prefix
       run: echo ${{ github.ref_name }} | egrep '^v[0-9]+\.[0-9]+\.[0-9]+\S*$'
+
+  # Publish to npm
+  npm-publish:
+    needs: [build, valid-tag]
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@v4
+        - uses: actions/setup-node@v4
+          with:
+            node-version: 20
+            registry-url: https://registry.npmjs.org/
+        - run: npm ci
+        - name: Download lib artifact
+          uses: actions/download-artifact@v4
+          with:
+            name: lib
+            path: lib
+        - name: Download build artifact
+          uses: actions/download-artifact@v4
+          with:
+            name: build
+            path: build
+        # - name: NPM Publish
+        #   run: npm publish
+        #   env:
+        #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
