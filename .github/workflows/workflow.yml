@@ -61,7 +61,7 @@ jobs:
 
   # Build pages
   build-pages:
-    needs: [build, main-branch]
+    needs: [main-branch]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -104,7 +104,7 @@ jobs:
 
   # Publish to npm
   npm-publish:
-    needs: [build, valid-tag]
+    needs: [valid-tag]
     runs-on: ubuntu-latest
     steps:
         - uses: actions/checkout@v4
