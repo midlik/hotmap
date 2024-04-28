@@ -54,7 +54,9 @@ jobs:
   main-branch:
     if: github.ref == 'refs/heads/main' # Only run on main branch
     runs-on: ubuntu-latest
-    steps: []
+    steps: 
+      - name: Echo OK
+        run: echo OK
 
   # Build pages
   build-pages:
@@ -108,7 +110,6 @@ jobs:
           with:
             node-version: 20
             registry-url: https://registry.npmjs.org/
-        - run: npm ci
         - name: Download lib artifact
           uses: actions/download-artifact@v4
           with:
